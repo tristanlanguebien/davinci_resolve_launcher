@@ -1,0 +1,25 @@
+# Specify the path to DaVinci Resolve executable
+resolve_executable = "C:/Program Files/Blackmagic Design/DaVinci Resolve/Resolve.exe"
+
+# Specify path to the scripts dir
+interactive_scripts_dir = "D:/my_custom_script_dir"
+
+# Set to true to kill any existing instance of Resolve
+kill = true
+
+# Project database to load (if it does not exist, a new project database will be created)
+project_database = "D:/my_custom_project_db"
+
+# Project to open on startup
+project_name = "my project"
+
+# Function to execute at startup
+module = "my_module"
+function = "my_function"
+args = ["hello", "world"]
+kwargs.kwarg1 = "HELLO"
+kwargs.kwarg2 = "WORLD"
+
+extra_python_paths= [
+    "D:/my_custom_modules"
+]

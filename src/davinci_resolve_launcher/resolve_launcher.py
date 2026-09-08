@@ -8,6 +8,7 @@ import time
 import sys
 import logging
 import subprocess
+import toml
 
 """
 DaVinci Resolve has a few quirks that make it somewhat complex to have a custom launch process.
@@ -95,12 +96,13 @@ def get_environment_variables(
     function: str,
     args: list[str] | None = None,
     kwargs: dict | None = None,
+    extra_python_paths: list[Path] | None = None,
 ) -> dict[str, str]:
     args = args or []
     kwargs = kwargs or {}
     env = {
         "PYTHONHOME": Path(sys._base_executable).parent.as_posix(),  # type: ignore
-        "PYTHONPATH": ";".join([path.as_posix() for path in get_python_paths()]),
+        "PYTHONPATH": ";".join([path.as_posix() for path in get_python_paths(extra_python_paths)]),
         "PYTHON_STARTUP_WRAPPER": (ROOT_DIR / "startup_wrapper.py").as_posix(),
         "RESOLVE_SCRIPT_API": resolve_script_api().as_posix(),  # Not used for now, but may be useful in the Studio edition of Resolve
         "RESOLVE_SCRIPT_LIB": resolve_script_lib().as_posix(),  # Not used for now, but may be useful in the Studio edition of Resolve
@@ -117,6 +119,11 @@ def get_environment_variables(
     return env
 
 
+def parse_config_file(config_file: Path):
+    conf = toml.load(config_file)
+    return conf
+
+
 def open(
     resolve_executable: Path | None = None,
     interactive_scripts_dir: Path | None = None,
@@ -127,14 +134,17 @@ def open(
     function: str = "",
     args: list[str] | None = None,
     kwargs: dict | None = None,
+    extra_python_paths: list[Path] | None = None,
 ):
     # Executable
-    resolve_executable = resolve_executable or default_resolve_executable()
+    resolve_executable = Path(resolve_executable) if resolve_executable else default_resolve_executable()
     if not resolve_executable.exists():
         raise FileNotFoundError(f"Executable to DaVinci Resolve not found: {resolve_executable}")
 
     # Interactive scripts dir
-    interactive_scripts_dir = interactive_scripts_dir or default_interactive_scripts_dir()
+    interactive_scripts_dir = (
+        Path(interactive_scripts_dir) if interactive_scripts_dir else default_interactive_scripts_dir()
+    )
     if not interactive_scripts_dir.exists():
         raise FileNotFoundError(f"Executable to DaVinci Resolve not found: {interactive_scripts_dir}")
 
@@ -152,6 +162,7 @@ def open(
             function=function,
             args=args,
             kwargs=kwargs,
+            extra_python_paths=extra_python_paths,
         )
     )
     subprocess.Popen(command, env=env)
@@ -211,11 +222,14 @@ def setup_startup_wrapper():
     shutil.copy(src, dst)
 
 
-def get_python_paths() -> list[Path]:
+def get_python_paths(extra_python_paths: list[Path] | None = None) -> list[Path]:
     paths = [
         Path(sys.executable).parent.parent / "Lib/site-packages",
         modules_path(),  # Not used for now, but may be useful in the Studio edition of Resolve
     ]
+    extra_python_paths = extra_python_paths or []
+    for path in extra_python_paths:
+        paths.append(Path(path))
 
     # In editable mode, add the src folder to PYTHONPATH
     parent = Path(__file__).parent.parent
@@ -266,7 +280,8 @@ def programdata_scripts_path() -> Path:
 def setup_project_database(project_database: Path | None = None):
     if not project_database:
         return
-    logging.info("Setup project database")
+    project_database = Path(project_database)
+    logging.info(f"Setup project database ({project_database})")
     db_name = project_database.name
     db_path = project_database / "Resolve Project Library"
 
@@ -284,7 +299,7 @@ def setup_project_database(project_database: Path | None = None):
     content = db_list.read_text()
     if f"{db_name}:" not in content:
         content = content.strip()
-        content += f"\n{db_name}:{str(db_path).replace(':', '')}:*:::DISK#\n"
+        content += f"\n{db_name}:{str(db_path).replace(':', '')}:*:::DISK\n"
         db_list.write_text(content)
 
     # Set active db
@@ -343,6 +358,13 @@ def parse_arguments():
         type=str,
         help="kwargs to pass to the function, written at the format key1=value1;key2=value2\nWarning: all kwargs will be considered as strings, make sure to convert them",
     )
+    group.add_argument(
+        "-epp",
+        "--extra_python_paths",
+        nargs="+",
+        type=Path,
+        help="Extra paths to packages/modules to add to PYTHONPATH",
+    )
 
     args = parser.parse_args()
 
@@ -364,6 +386,7 @@ def parse_arguments():
             function=args.function,
             args=args.args,
             kwargs=kwargs,
+            extra_python_paths=args.extra_python_paths,
         )
         return
 
