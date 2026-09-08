@@ -13,6 +13,12 @@ dependencies = [
     "toml>=0.10.2",
 ]
 
+[project.optional-dependencies]
+docs = [
+    "zensical",
+    "mkdocstrings-python"
+]
+
 [project.scripts]
 davinci-resolve-launcher = "davinci_resolve_launcher:main"
 

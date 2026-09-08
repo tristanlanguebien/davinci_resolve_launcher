@@ -1,0 +1,46 @@
+# TUTORIAL
+# Edit this file then run this command in the root directory
+# uv sync --extra docs
+# zensical serve
+#
+# The documentation can be seen by going on chrome :
+# http://localhost:8000/
+
+# ressources :
+# https://gist.github.com/rxaviers/7360908
+
+[project]
+site_name = "DaVinci Resolve Launcher"
+site_description = "Launcher for DaVinci Resolve for pipeline implementation"
+site_url = "https://tristanlanguebien.github.io/davinci_resolve_launcher/"
+repo_url = "https://github.com/tristanlanguebien/davinci_resolve_launcher/"
+repo_name = "tristanlanguebien/davinci_resolve_launcher"
+edit_uri = "edit/main/docs/"
+extra_css = ["stylesheets/extra.css"]
+nav = [
+    { "Home" = "index.md" },
+    { "Quick Start" = "quickstart.md" },
+]
+
+# Palette toggle for dark mode
+[[project.theme.palette]]
+media = "(prefers-color-scheme: dark)"
+scheme = "slate"
+primary = "blue"
+accent = "blue"
+toggle.icon = "lucide/moon-star"
+toggle.name = ""
+
+[project.theme]
+features = [
+    "navigation.sections",
+    "navigation.top",
+    "search.suggest",
+    "search.highlight",
+    "content.tabs.link",
+    "content.code.annotation",
+    "content.code.copy",
+]
+
+[project.theme.icon]
+repo = "fontawesome/brands/github"
