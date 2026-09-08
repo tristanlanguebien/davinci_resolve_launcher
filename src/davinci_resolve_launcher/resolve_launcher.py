@@ -9,6 +9,7 @@ import sys
 import logging
 import subprocess
 import toml
+from win32com.client import Dispatch
 
 """
 DaVinci Resolve has a few quirks that make it somewhat complex to have a custom launch process.
@@ -79,7 +80,6 @@ logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
 
 
 ROOT_DIR = Path(__file__).parent
-TEMP_PROJECT_NAME = "_temp"
 
 
 def default_resolve_executable() -> Path:
@@ -321,11 +321,37 @@ def clear():
         shutil.move(src, path)
 
 
+def create_shortcut(
+    config_path: Path,
+    shortcut_path: Path | None = None,
+):
+    shortcut_path = (
+        Path(shortcut_path)
+        if shortcut_path
+        else Path(f"C:/users/{os.environ['USERNAME']}/desktop/Resolve Launcher.lnk")
+    )
+    logging.info(f"Creating shortcut: {shortcut_path}")
+    shell = Dispatch("WScript.Shell")
+    shortcut = shell.CreateShortCut(shortcut_path.as_posix())
+    shortcut.Targetpath = Path(sys.executable).as_posix()
+    shortcut.IconLocation = (ROOT_DIR / "resources/icon64.ico").as_posix()
+    shortcut.Arguments = " ".join(
+        [
+            Path(__file__).as_posix(),
+            "--open",
+            "--config_file",
+            config_path.as_posix(),
+        ]
+    )
+    shortcut.save()
+
+
 def parse_arguments():
     parser = argparse.ArgumentParser()
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("-o", "--open", action="store_true", help="Open action")
     group.add_argument("-c", "--clear", action="store_true", help="Clear action")
+    parser.add_argument("-cf", "--config_file", required=False, type=Path, help="Path to the toml config file")
     parser.add_argument(
         "-p",
         "--project",
@@ -376,19 +402,24 @@ def parse_arguments():
             kwargs[key.strip()] = value.strip()
 
     if args.open:
-        open(
-            resolve_executable=args.executable,
-            interactive_scripts_dir=args.interactive_scripts_dir,
-            kill=args.kill,
-            project_name=args.project,
-            project_database=args.project_database,
-            module=args.module,
-            function=args.function,
-            args=args.args,
-            kwargs=kwargs,
-            extra_python_paths=args.extra_python_paths,
-        )
-        return
+        if args.config_file:
+            conf = parse_config_file(args.config_file)
+            open(**conf)
+            return
+        else:
+            open(
+                resolve_executable=args.executable,
+                interactive_scripts_dir=args.interactive_scripts_dir,
+                kill=args.kill,
+                project_name=args.project,
+                project_database=args.project_database,
+                module=args.module,
+                function=args.function,
+                args=args.args,
+                kwargs=kwargs,
+                extra_python_paths=args.extra_python_paths,
+            )
+            return
 
     if args.clear:
         clear()

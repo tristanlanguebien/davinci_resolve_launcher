@@ -1,2 +1,1 @@
-def main() -> None:
-    print("Hello from davinci-resolve-launcher!")
+TEMP_PROJECT_NAME = "_temp"

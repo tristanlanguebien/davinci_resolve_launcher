@@ -1,7 +1,7 @@
 import logging
 import os
 import json
-from davinci_resolve_launcher.resolve_launcher import TEMP_PROJECT_NAME
+from davinci_resolve_launcher import TEMP_PROJECT_NAME
 from davinci_resolve_launcher.context import get_context, init_context
 from importlib import import_module
 from typing import Any
