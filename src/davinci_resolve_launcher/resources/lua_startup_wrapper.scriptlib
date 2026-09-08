@@ -1,0 +1,8 @@
+print("===========================================")
+print("Running lua_startup_wrapper.scriptlib")
+print("===========================================")
+
+startup_wrapper = os.getenv("PYTHON_STARTUP_WRAPPER")
+script = fusion:MapPath(startup_wrapper)
+print("Running python wrapper: " .. script)
+fusion:RunScript(script)

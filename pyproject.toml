@@ -1,0 +1,19 @@
+[project]
+name = "davinci-resolve-launcher"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Tristan Languebien", email = "tlanguebien@gmail.com" }
+]
+requires-python = ">=3.9"
+dependencies = [
+    "psutil>=7.2.2",
+]
+
+[project.scripts]
+davinci-resolve-launcher = "davinci_resolve_launcher:main"
+
+[build-system]
+requires = ["uv_build>=0.12.0,<0.13.0"]
+build-backend = "uv_build"
